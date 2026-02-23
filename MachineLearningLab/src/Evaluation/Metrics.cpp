@@ -222,7 +222,18 @@ double Metrics::calculateDaviesBouldinIndex(const std::vector<std::vector<double
 	if (labels.empty() || labels.size() != X.size()) {
 		throw std::runtime_error("Error: labels vector size does not match dataset size.");
 	}
-	int numClusters = *std::max_element(labels.begin(), labels.end()) + 1;
+	std::vector<int> uniqueLabels;
+	uniqueLabels.reserve(labels.size());
+	for (int label : labels) {
+		if (label < 0) {
+			throw std::runtime_error("Error: Invalid cluster label.");
+		}
+		if (std::find(uniqueLabels.begin(), uniqueLabels.end(), label) == uniqueLabels.end()) {
+			uniqueLabels.push_back(label);
+		}
+	}
+
+	int numClusters = static_cast<int>(uniqueLabels.size());
 	if (numClusters <= 1) {
 		return 0.0;
 	}
@@ -231,10 +242,11 @@ double Metrics::calculateDaviesBouldinIndex(const std::vector<std::vector<double
 
 	// Calculate cluster sizes and centroids
 	for (size_t i = 0; i < X.size(); ++i) {
-		int cluster = labels[i];
-		if (cluster < 0 || cluster >= numClusters) {
+		auto it = std::find(uniqueLabels.begin(), uniqueLabels.end(), labels[i]);
+		if (it == uniqueLabels.end()) {
 			throw std::runtime_error("Error: Invalid cluster label.");
 		}
+		int cluster = static_cast<int>(std::distance(uniqueLabels.begin(), it));
 		const std::vector<double>& point = X[i];
 
 		for (size_t j = 0; j < point.size(); ++j) {
@@ -256,10 +268,11 @@ double Metrics::calculateDaviesBouldinIndex(const std::vector<std::vector<double
 	std::vector<double> clusterDiameters(numClusters, 0.0);
 	for (int i = 0; i < numClusters; ++i) {
 		const std::vector<double>& centroid = centroids[i];
+		const int originalLabel = uniqueLabels[i];
 
 		double maxDistance = 0.0;
 		for (size_t j = 0; j < X.size(); ++j) {
-			if (labels[j] == i) {
+			if (labels[j] == originalLabel) {
 				double distance = SimilarityFunctions::euclideanDistance(X[j], centroid);
 				if (distance > maxDistance) {
 					maxDistance = distance;
@@ -303,62 +316,81 @@ double Metrics::calculateSilhouetteScore(const std::vector<std::vector<double>>&
 	if (labels.empty() || labels.size() != X.size()) {
 		throw std::runtime_error("Error: labels vector size does not match dataset size.");
 	}
-	size_t n = X.size();
-	std::vector<double> clusterDistances(n, 0.0);
-	std::vector<double> clusterSizes(n, 0.0);
-
-	for (size_t i = 0; i < X.size(); ++i) {
-		int cluster = labels[i];
-		if (cluster < 0) {
+	const size_t n = X.size();
+	std::vector<int> uniqueLabels;
+	uniqueLabels.reserve(labels.size());
+	for (int label : labels) {
+		if (label < 0) {
 			throw std::runtime_error("Error: Invalid cluster label.");
 		}
-		const std::vector<double>& point = X[i];
-
-		for (size_t j = 0; j < X.size(); ++j) {
-			if (i != j) {
-				if (labels[j] == cluster) {
-					clusterDistances[i] += SimilarityFunctions::euclideanDistance(point, X[j]);
-					clusterSizes[i] += 1.0;
-				}
-			}
-		}
-
-		if (clusterSizes[i] > 0) {
-			clusterDistances[i] /= clusterSizes[i];
+		if (std::find(uniqueLabels.begin(), uniqueLabels.end(), label) == uniqueLabels.end()) {
+			uniqueLabels.push_back(label);
 		}
 	}
 
-	double silhouetteScore = 0.0;
-	for (size_t i = 0; i < X.size(); ++i) {
-		int cluster = labels[i];
-		double a = clusterDistances[i];
-		double b = std::numeric_limits<double>::max();
+	if (uniqueLabels.size() <= 1) {
+		return 0.0;
+	}
 
-		for (size_t j = 0; j < X.size(); ++j) {
-			if (labels[j] != cluster) {
-				double distance = SimilarityFunctions::euclideanDistance(X[i], X[j]);
-				if (distance < b) {
-					b = distance;
+	std::vector<std::vector<size_t>> clusterMembers(uniqueLabels.size());
+	for (size_t i = 0; i < labels.size(); ++i) {
+		auto it = std::find(uniqueLabels.begin(), uniqueLabels.end(), labels[i]);
+		if (it == uniqueLabels.end()) {
+			throw std::runtime_error("Error: Invalid cluster label.");
+		}
+		const size_t clusterIndex = static_cast<size_t>(std::distance(uniqueLabels.begin(), it));
+		clusterMembers[clusterIndex].push_back(i);
+	}
+
+	double silhouetteScore = 0.0;
+	for (size_t i = 0; i < n; ++i) {
+		auto it = std::find(uniqueLabels.begin(), uniqueLabels.end(), labels[i]);
+		if (it == uniqueLabels.end()) {
+			throw std::runtime_error("Error: Invalid cluster label.");
+		}
+		const size_t ownCluster = static_cast<size_t>(std::distance(uniqueLabels.begin(), it));
+
+		double a = 0.0;
+		const auto& ownMembers = clusterMembers[ownCluster];
+		if (ownMembers.size() > 1) {
+			for (size_t idx : ownMembers) {
+				if (idx == i) {
+					continue;
 				}
+				a += SimilarityFunctions::euclideanDistance(X[i], X[idx]);
+			}
+			a /= static_cast<double>(ownMembers.size() - 1);
+		}
+
+		double b = std::numeric_limits<double>::max();
+		for (size_t clusterIdx = 0; clusterIdx < clusterMembers.size(); ++clusterIdx) {
+			if (clusterIdx == ownCluster || clusterMembers[clusterIdx].empty()) {
+				continue;
+			}
+
+			double avgDistance = 0.0;
+			for (size_t idx : clusterMembers[clusterIdx]) {
+				avgDistance += SimilarityFunctions::euclideanDistance(X[i], X[idx]);
+			}
+			avgDistance /= static_cast<double>(clusterMembers[clusterIdx].size());
+
+			if (avgDistance < b) {
+				b = avgDistance;
 			}
 		}
 
 		double s = 0.0;
-		if (b == std::numeric_limits<double>::max()) {
-			s = 0.0;
-		}
-		else if (a < b) {
-			s = 1.0 - (a / b);
-		}
-		else if (a > b) {
-			s = (b / a) - 1.0;
+		if (b != std::numeric_limits<double>::max()) {
+			double denominator = std::max(a, b);
+			if (denominator > 0.0) {
+				s = (b - a) / denominator;
+			}
 		}
 
 		silhouetteScore += s;
 	}
 
-	silhouetteScore /= n;
-	return silhouetteScore;
+	return silhouetteScore / static_cast<double>(n);
 }
 
 
