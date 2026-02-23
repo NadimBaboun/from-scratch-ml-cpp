@@ -18,7 +18,6 @@ public:
 };
 
 #endif // DATAPREPROCESSOR_H
-#pragma once
 
 
 

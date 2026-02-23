@@ -10,7 +10,7 @@ public:
     // Regression evaluation metrics
     static double meanAbsoluteError(const std::vector<double>& trueValues, const std::vector<double>& predictedValues);
     static double rootMeanSquaredError(const std::vector<double>& trueValues, const std::vector<double>& predictedValues);
-    static double Metrics::rSquared(const std::vector<double>& trueValues, const std::vector<double>& predictedValues);
+    static double rSquared(const std::vector<double>& trueValues, const std::vector<double>& predictedValues);
 
     // Classification evaluation metrics
     static double accuracy(const std::vector<double>& trueLabels, const std::vector<double>& predictedLabels);

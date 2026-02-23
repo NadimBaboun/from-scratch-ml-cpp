@@ -1,18 +1,5 @@
 #ifndef NODE_H
 #define NODE_H
-#include "../DataUtils/DataLoader.h"
-#include "../Evaluation/Metrics.h"
-#include <iostream>
-#include <string>
-#include <vector>
-#include <utility>
-#include <map>
-#include <cmath>
-#include <algorithm>
-#include <unordered_map>
-#include <set>
-#include <numeric>
-#include <unordered_set>
 
 
                                 // Node class definition //
