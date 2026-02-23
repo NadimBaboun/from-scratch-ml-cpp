@@ -1,0 +1,94 @@
+# -----------------------------
+# OS / editor noise
+# -----------------------------
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+
+# -----------------------------
+# VS Code
+# -----------------------------
+.vscode/*
+!.vscode/tasks.json
+!.vscode/build-solution.ps1
+
+# -----------------------------
+# Visual Studio / MSBuild
+# -----------------------------
+.vs/
+*.VC.db
+*.VC.opendb
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# C++ IntelliSense / browse DB
+*.ipch
+*.opendb
+
+# Build logs / diagnostics
+*.log
+*.tlog
+*.lastbuildstate
+*.tmp
+*.cache
+
+# -----------------------------
+# Build outputs
+# -----------------------------
+[Bb]in/
+[Oo]ut/
+x64/
+x86/
+Debug/
+Release/
+
+# Keep source-tree binaries out
+MachineLearningLab/bin/
+MachineLearningLab/obj/
+
+# CMake / Ninja artifacts
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+build.ninja
+.ninja_*
+Testing/
+
+# MSBuild generated intermediates from this repo
+bin/intermediates/
+
+# -----------------------------
+# Package / archive artifacts
+# -----------------------------
+*.7z
+*.zip
+*.tar
+*.gz
+
+# -----------------------------
+# Local env files
+# -----------------------------
+.env
+.env.*
+
+# -----------------------------
+# Local machine Visual Studio templates/tools (not project source)
+# -----------------------------
+Visual Studio 2022/
+Visual Studio 2022Templates/
+Templates/
+Visualizers/
+UpgradeLog.htm
+
+# -----------------------------
+# Python cache (if any utility scripts are added)
+# -----------------------------
+__pycache__/
+*.pyc

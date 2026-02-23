@@ -1,0 +1,49 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build MachineLearningLab (Debug x64)",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\.vscode\\build-solution.ps1",
+        "-Solution",
+        "MachineLearningLab.sln",
+        "-Configuration",
+        "Debug",
+        "-Platform",
+        "x64"
+      ],
+      "group": "build",
+      "problemMatcher": ["$msCompile"],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "Build MachineLearningLab (Release x64)",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\.vscode\\build-solution.ps1",
+        "-Solution",
+        "MachineLearningLab.sln",
+        "-Configuration",
+        "Release",
+        "-Platform",
+        "x64"
+      ],
+      "group": "build",
+      "problemMatcher": ["$msCompile"],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    }
+  ]
+}
