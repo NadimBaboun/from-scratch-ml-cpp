@@ -26,6 +26,28 @@ KNNClassifier::KNNClassifier(int k) : k_(k) {}
 
 // fit function: Fits the KNNClassifier with the given training data.//
 void KNNClassifier::fit(const std::vector<std::vector<double>>& X_train, const std::vector<double>& y_train) {
+	if (X_train.empty() || y_train.empty()) {
+		throw std::runtime_error("Error: Empty training data.");
+	}
+	if (X_train.size() != y_train.size()) {
+		throw std::runtime_error("Error: Training data and labels size mismatch.");
+	}
+	if (k_ <= 0) {
+		throw std::invalid_argument("Error: k must be positive.");
+	}
+	if (static_cast<size_t>(k_) > X_train.size()) {
+		throw std::invalid_argument("Error: k cannot exceed number of training samples.");
+	}
+	const size_t expectedFeatureCount = X_train[0].size();
+	if (expectedFeatureCount == 0) {
+		throw std::runtime_error("Error: Training data has zero features.");
+	}
+	for (size_t i = 1; i < X_train.size(); ++i) {
+		if (X_train[i].size() != expectedFeatureCount) {
+			throw std::runtime_error("Error: Inconsistent feature counts in training data.");
+		}
+	}
+
 	X_train_ = X_train;
 	y_train_ = y_train;
 }
@@ -40,6 +62,15 @@ std::vector<double> KNNClassifier::predict(const std::vector<std::vector<double>
 	if (X_train_.empty() || y_train_.empty()) {
 		throw std::runtime_error("Error: Empty training data.");
 	}
+	if (k_ <= 0 || static_cast<size_t>(k_) > X_train_.size()) {
+		throw std::runtime_error("Error: Invalid k for current training data.");
+	}
+	const size_t expectedFeatureCount = X_train_[0].size();
+	for (size_t i = 0; i < X_test.size(); ++i) {
+		if (X_test[i].size() != expectedFeatureCount) {
+			throw std::runtime_error("Error: Test sample feature count does not match training data.");
+		}
+	}
 
 	/* Implement the following:
 		--- Loop through each test data point
@@ -51,13 +82,13 @@ std::vector<double> KNNClassifier::predict(const std::vector<std::vector<double>
 	SimilarityFunctions s;
 
 	// Loop through test data points
-	for (int i = 0; i < X_test.size(); i++) {
+	for (size_t i = 0; i < X_test.size(); i++) {
 		// Initialize an array of pairs for distance
 		// first item is the index and the second is the distance
 		std::vector<std::pair<int, double>> distances(X_train_.size());
 		
 		// Loop through the training data points
-		for (int j = 0; j < X_train_.size(); j++) {
+		for (size_t j = 0; j < X_train_.size(); j++) {
 			// Calculate the distance from test point to each training point and store it
 			distances[j] = std::make_pair(j, s.manhattanDistance(X_test[i], X_train_[j]));
 		}

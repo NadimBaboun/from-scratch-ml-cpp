@@ -17,6 +17,10 @@ using namespace System::Windows::Forms; // For MessageBox
 void DataPreprocessor::splitDataset(const std::vector<std::vector<double>>& dataset, double trainRatio,
 	std::vector<std::vector<double>>& trainData, std::vector<double>& trainLabels,
 	std::vector<std::vector<double>>& testData, std::vector<double>& testLabels) {
+	trainData.clear();
+	trainLabels.clear();
+	testData.clear();
+	testLabels.clear();
 
 	if (dataset.empty()) {
 		throw std::runtime_error("Error: Empty dataset.");
@@ -49,6 +53,13 @@ void DataPreprocessor::splitDataset(const std::vector<std::vector<double>>& data
 
 	if (features.empty()) {
 		throw std::runtime_error("Error: No valid rows found in dataset.");
+	}
+
+	const size_t expectedFeatureCount = features[0].size();
+	for (size_t i = 1; i < features.size(); ++i) {
+		if (features[i].size() != expectedFeatureCount) {
+			throw std::runtime_error("Error: Inconsistent number of features across rows.");
+		}
 	}
 
 	trainSize = static_cast<size_t>(features.size() * trainRatio);
@@ -90,27 +101,32 @@ void DataPreprocessor::normalizeDataset(std::vector<std::vector<double>>&dataset
 		throw std::runtime_error("Error: Dataset is empty.");
 	}
 
-	for (int i = 0; i < dataset[0].size(); i++) {
+	for (size_t i = 0; i < dataset[0].size(); i++) {
 		std::vector<double> columnData;
-		for (int j = 0; j < dataset.size(); j++) {
+		for (size_t j = 0; j < dataset.size(); j++) {
 			columnData.push_back(dataset[j][i]);
 		}
 		double mean = std::accumulate(columnData.begin(), columnData.end(), 0.0) / columnData.size();
 		double variance = 0;
-		for (int j = 0; j < columnData.size(); j++) {
+		for (size_t j = 0; j < columnData.size(); j++) {
 			variance += std::pow((columnData[j] - mean), 2);
 		}
-		variance /= columnData.size() - 1;
+		if (columnData.size() > 1) {
+			variance /= (columnData.size() - 1);
+		}
+		else {
+			variance = 0.0;
+		}
 		double stdDeviation = std::sqrt(variance);
 
 		// Handle the case when standard deviation is zero
 		if (stdDeviation == 0.0) {
-			for (int j = 0; j < dataset.size(); j++) {
+			for (size_t j = 0; j < dataset.size(); j++) {
 				dataset[j][i] = 0.0;
 			}
 		}
 		else {
-			for (int j = 0; j < dataset.size(); j++) {
+			for (size_t j = 0; j < dataset.size(); j++) {
 				dataset[j][i] = (dataset[j][i] - mean) / stdDeviation;
 			}
 		}
@@ -125,10 +141,10 @@ void DataPreprocessor::scaleDataset(std::vector<std::vector<double>>& dataset) {
 		throw std::runtime_error("Error: Dataset is empty.");
 	}
 
-	for (int i = 0; i < dataset[0].size(); i++) {
+	for (size_t i = 0; i < dataset[0].size(); i++) {
 		double minVal = dataset[0][i];
 		double maxVal = dataset[0][i];
-		for (int j = 1; j < dataset.size(); j++) {
+		for (size_t j = 1; j < dataset.size(); j++) {
 			if (dataset[j][i] < minVal) {
 				minVal = dataset[j][i];
 			}
@@ -137,7 +153,7 @@ void DataPreprocessor::scaleDataset(std::vector<std::vector<double>>& dataset) {
 			}
 		}
 		double range = maxVal - minVal;
-		for (int j = 0; j < dataset.size(); j++) {
+		for (size_t j = 0; j < dataset.size(); j++) {
 			if (range == 0.0) {
 				dataset[j][i] = 0.0;
 			}

@@ -33,8 +33,22 @@ using namespace System::Windows::Forms; // For MessageBox
 //Overloaded with epoch and learning rate
 void LinearRegression::fit(const std::vector<std::vector<double>>& trainData, const std::vector<double>& trainLabels, double learning_rate, int num_epochs) {
 
+    if (trainData.empty() || trainLabels.empty()) {
+        throw std::logic_error("Training data or labels are empty!");
+    }
+
     if (trainData.size() != trainLabels.size()) {
         throw std::logic_error("Size of trainData and trainLabels do not match!");
+    }
+
+    const size_t expectedFeatureCount = trainData[0].size();
+    if (expectedFeatureCount == 0) {
+        throw std::logic_error("Training data has zero features!");
+    }
+    for (size_t i = 1; i < trainData.size(); ++i) {
+        if (trainData[i].size() != expectedFeatureCount) {
+            throw std::logic_error("Inconsistent feature counts in training data!");
+        }
     }
 
     //Variable decleration
@@ -108,8 +122,22 @@ void LinearRegression::fit(const std::vector<std::vector<double>>& trainData, co
 		--- Calculate the coefficients using the least squares method
 		--- Store the coefficients for future predictions
 	*/
+    if (trainData.empty() || trainLabels.empty()) {
+        throw std::logic_error("Training data or labels are empty!");
+    }
+
     if (trainData.size() != trainLabels.size()) {
         throw std::logic_error("Size of trainData and trainLabels do not match!");
+    }
+
+    const size_t expectedFeatureCount = trainData[0].size();
+    if (expectedFeatureCount == 0) {
+        throw std::logic_error("Training data has zero features!");
+    }
+    for (size_t i = 1; i < trainData.size(); ++i) {
+        if (trainData[i].size() != expectedFeatureCount) {
+            throw std::logic_error("Inconsistent feature counts in training data!");
+        }
     }
 
     //Variable decleration
@@ -166,6 +194,20 @@ std::vector<double> LinearRegression::predict(const std::vector<std::vector<doub
     if (m_coefficients.size() == 0) {
         throw std::logic_error("Model has not been fitted!");
     }
+    if (testData.empty()) {
+        return {};
+    }
+
+    const size_t expectedFeatureCount = static_cast<size_t>(m_coefficients.size() - 1);
+    if (expectedFeatureCount == 0) {
+        throw std::logic_error("Model coefficients are invalid!");
+    }
+    for (size_t i = 0; i < testData.size(); ++i) {
+        if (testData[i].size() != expectedFeatureCount) {
+            throw std::logic_error("Test data feature count does not match trained model.");
+        }
+    }
+
     //Variable decleration
     int numSamples = testData.size();
     int numFeatures = testData[0].size();
